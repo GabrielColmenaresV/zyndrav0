@@ -1,0 +1,9 @@
+# Carpetas de Build (¡La regla corregida!)
+build/
+
+# Carpetas del IDE y Gradle
+.idea/
+.gradle/
+
+# Archivos locales (¡No subir!)
+local.properties
