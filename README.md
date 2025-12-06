@@ -9,6 +9,7 @@
 
 Zyndra es una aplicación móvil de agente personal para Android que combina funcionalidades de chat inteligente con un sistema gacha adictivo para desbloquear cosméticos y personalizar la experiencia del usuario. Desarrollada con las tecnologías más modernas de Android, incluyendo Jetpack Compose, Room Database y arquitectura MVVM.
 
+# **NOTA**: ROOM Fue modificado en la ultima version por la API del proyecto de FULLSTACK Para cumplir con los estandares de la evaluación
 ## Características Principales
 
 ### 🎰 Sistema Gacha
