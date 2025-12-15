@@ -17,7 +17,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.zyndrav0.viewmodel.*
 
-// Sealed class para la navegación interna de MainScreen
 sealed class MainScreenTab(val route: String, val label: String, val icon: ImageVector) {
     object Chat : MainScreenTab("chat", "Chat", Icons.Default.Chat)
     object History : MainScreenTab("history", "Historial", Icons.Default.History)
@@ -71,10 +70,10 @@ fun MainScreen(onLogout: () -> Unit) {
                 val chatHistoryViewModel: ChatHistoryViewModel = viewModel()
                 ChatHistoryScreen(viewModel = chatHistoryViewModel, onConversationClick = { /* TODO */ })
             }
-            composable(MainScreenTab.Gacha.route) { 
-                GachaScreen(navController = navController) 
+            composable(MainScreenTab.Gacha.route) {
+                GachaScreen(navController = navController)
             }
-            composable(MainScreenTab.Profile.route) { 
+            composable(MainScreenTab.Profile.route) {
                 ProfileScreen(
                     viewModel = viewModel<ProfileViewModel>(),
                     onLogoutClick = onLogout,
@@ -86,18 +85,44 @@ fun MainScreen(onLogout: () -> Unit) {
             composable(MainScreenTab.Inventory.route) {
                 InventoryScreen(viewModel<InventoryViewModel>())
             }
-             composable("gacha_result/{itemIds}") { backStackEntry ->
+            composable("gacha_result/{itemIds}") { backStackEntry ->
                 val gachaViewModel: GachaViewModel = viewModel()
                 val itemIdsString = backStackEntry.arguments?.getString("itemIds") ?: ""
                 val itemIds = itemIdsString.split(",").mapNotNull { it.toIntOrNull() }
                 GachaResultScreen(navController = navController, itemIds = itemIds, viewModel = gachaViewModel)
             }
             composable("bluetooth") {
-                BluetoothScreen(viewModel = viewModel())
+                BluetoothScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable("store") {
-                StoreScreen(viewModel = viewModel())
+                val db = com.example.zyndrav0.data.database.AppDatabase.getDatabase(context)
+
+                val userRepository = com.example.zyndrav0.data.repository.UserRepository(
+                    userDao = db.userDao(),
+                    userPreferencesDao = db.userPreferencesDao()
+                )
+
+                val sessionManager = com.example.zyndrav0.data.datastore.SessionManager(context)
+
+                val factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                        return com.example.zyndrav0.viewmodel.StoreViewModel(
+                            application,
+                            userRepository,
+                            sessionManager
+                        ) as T
+                    }
+                }
+
+                val storeViewModel: StoreViewModel = viewModel(factory = factory)
+
+                StoreScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    viewModel = storeViewModel
+                )
+            }
             }
         }
     }
-}

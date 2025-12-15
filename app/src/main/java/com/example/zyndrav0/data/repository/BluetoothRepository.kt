@@ -70,7 +70,7 @@ class ZyndraBluetoothRepository(private val context: Context) : BluetoothReposit
         bluetoothAdapter?.bondedDevices?.forEach { addDevice(it) }
     }
 
-    @SuppressLint("MissingPermission") // Suprimimos el error aquí
+    @SuppressLint("MissingPermission")
     override fun startScan() {
         if (bluetoothAdapter == null) {
             _errorMessage.value = "Bluetooth no disponible en este dispositivo."

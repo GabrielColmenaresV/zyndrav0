@@ -28,7 +28,7 @@ class UserRepository(
             userId = userId,
             email = email,
             username = username,
-            passwordHash = hashPassword(password) // Hashear la contraseña
+            passwordHash = hashPassword(password)
         )
         userDao.insertUser(user)
 
@@ -36,6 +36,23 @@ class UserRepository(
         userPreferencesDao.insertPreferences(preferences)
 
         return user
+    }
+
+    suspend fun insertUserFromApi(apiUser: User) {
+        val localUser = userDao.getUserById(apiUser.userId).first()
+
+        if (localUser != null) {
+            val usuarioFusionado = localUser.copy(
+                username = apiUser.username,
+                email = apiUser.email
+            )
+            userDao.updateUser(usuarioFusionado)
+        } else {
+            userDao.insertUser(apiUser)
+            if (userPreferencesDao.getPreferences(apiUser.userId).first() == null) {
+                userPreferencesDao.insertPreferences(UserPreferences(userId = apiUser.userId))
+            }
+        }
     }
 
     suspend fun updateUser(user: User) {

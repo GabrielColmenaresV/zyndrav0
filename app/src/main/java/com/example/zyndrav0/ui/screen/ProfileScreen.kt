@@ -130,7 +130,6 @@ fun ProfileScreen(
                             Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 ProfileInfoRow(icon = Icons.Default.Person, label = "Nombre", value = user?.username ?: "N/A")
 
-                                // HE BORRADO LA LÍNEA DEL EMAIL AQUÍ 👇
 
                                 ProfileInfoRow(icon = Icons.Default.MonetizationOn, label = "Monedas", value = user?.currency?.toString() ?: "0")
                                 ProfileInfoRow(icon = Icons.Default.Star, label = "Nivel", value = user?.level?.toString() ?: "1")

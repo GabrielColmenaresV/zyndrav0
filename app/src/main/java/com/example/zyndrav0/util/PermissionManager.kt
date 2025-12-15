@@ -8,7 +8,6 @@ import androidx.core.content.ContextCompat
 
 object PermissionManager {
     
-    // Permisos de cámara
     val CAMERA_PERMISSIONS = arrayOf(
         Manifest.permission.CAMERA
     )

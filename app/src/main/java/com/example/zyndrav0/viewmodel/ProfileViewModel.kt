@@ -11,23 +11,17 @@ import com.example.zyndrav0.data.repository.GachaRepository
 import com.example.zyndrav0.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ProfileViewModel(
-    application: Application,
-    private val sessionManager: SessionManager = SessionManager(application),
-    private val userRepository: UserRepository = UserRepository(
-        AppDatabase.getDatabase(application).userDao(),
-        AppDatabase.getDatabase(application).userPreferencesDao()
-    ),
-    private val gachaRepository: GachaRepository = GachaRepository(
-        AppDatabase.getDatabase(application).gachaInventoryDao(),
-        AppDatabase.getDatabase(application).userDao()
-    )
-) : AndroidViewModel(application) {
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Ya no creamos nada aquí adentro, usamos las variables del constructor 👆
+    private val sessionManager = SessionManager(application)
+    private val database = AppDatabase.getDatabase(application)
+
+    private val userRepository = UserRepository(database.userDao(), database.userPreferencesDao())
+    private val gachaRepository = GachaRepository(database.gachaInventoryDao(), database.userDao())
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -39,88 +33,59 @@ class ProfileViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
-        loadInitialData()
+        loadData()
     }
 
-    private fun loadInitialData() {
+    private fun loadData() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val userId = sessionManager.userId.first()
-                val userName = sessionManager.userName.first()
+            val userId = sessionManager.userId.first()
 
-                if (userId == null) {
-                    _user.value = null
-                    _isLoading.value = false
-                    return@launch
-                }
-
-                val localUser = try {
-                    userRepository.getUserById(userId).first()
-                } catch (e: Exception) {
-                    null
-                }
-
-                if (localUser != null) {
-                    _user.value = localUser
-                } else {
-                    val displayUser = User(
-                        userId = userId,
-                        username = userName ?: "Usuario",
-                        email = "", // dejenlo vacio o se bugea
-                        passwordHash = "",
-                        profileImageUri = null
-                    )
-
-                    saveUserLocally(displayUser)
-                    _user.value = displayUser
-                }
-
-                // El
-                val count = try {
-                    gachaRepository.getInventoryCount(userId)
-                } catch (e: Exception) {
-                    0
-                }
-                _inventoryCount.value = count
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
+            if (userId == null) {
                 _isLoading.value = false
+                return@launch
             }
+
+            launch {
+                userRepository.getUserById(userId).collectLatest { userActualizado ->
+                    if (userActualizado != null) {
+                        _user.value = userActualizado
+                    } else {
+                        val nuevoUser = User(
+                            userId = userId,
+                            username = sessionManager.userName.first() ?: "Usuario",
+                            email = "",
+                            passwordHash = ""
+                        )
+                        saveUserLocally(nuevoUser)
+                    }
+                }
+            }
+
+            launch {
+                try {
+                    _inventoryCount.value = gachaRepository.getInventoryCount(userId)
+                } catch (e: Exception) {
+                    _inventoryCount.value = 0
+                }
+            }
+
+            _isLoading.value = false
         }
     }
 
     private fun saveUserLocally(user: User) {
         viewModelScope.launch {
             try {
-                if (userRepository.getUserById(user.userId).first() == null) {
-                    userRepository.createUser(
-                        email = user.email,
-                        username = user.username,
-                        password = "api_user"
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+                userRepository.createUser(user.email, user.username, "local_pass")
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
     fun updateProfileImage(uri: Uri) {
         viewModelScope.launch {
-            try {
-                val userId = sessionManager.userId.first() ?: return@launch
-                userRepository.updateProfileImage(userId, uri.toString())
-
-                val currentUser = _user.value
-                if (currentUser != null) {
-                    _user.value = currentUser.copy(profileImageUri = uri.toString())
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            val userId = sessionManager.userId.first() ?: return@launch
+            userRepository.updateProfileImage(userId, uri.toString())
         }
     }
 

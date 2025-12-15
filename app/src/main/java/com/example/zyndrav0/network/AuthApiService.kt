@@ -9,11 +9,9 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface AuthApiService {
-    // Aquí usamos la ruta relativa, ya que la base la pondremos en el cliente
     @POST("api/auth/register")
     suspend fun registerUser(@Body request: RegisterRequest): Response<RegisterResponse>
 
-    // 👇 AGREGA ESTE PARA EL LOGIN
     @POST("api/auth/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
 }

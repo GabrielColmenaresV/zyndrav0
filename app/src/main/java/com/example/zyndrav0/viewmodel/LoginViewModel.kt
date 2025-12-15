@@ -6,18 +6,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.zyndrav0.data.database.AppDatabase
+import com.example.zyndrav0.data.database.entities.User
 import com.example.zyndrav0.data.datastore.SessionManager
+import com.example.zyndrav0.data.repository.UserRepository
 import com.example.zyndrav0.model.LoginRequest
-import com.example.zyndrav0.network.AuthApiService // Asegúrate de tener este import
 import com.example.zyndrav0.network.AuthRetrofitClient
 import kotlinx.coroutines.launch
 
-class LoginViewModel(
-    application: Application,
-    private val apiService: AuthApiService = AuthRetrofitClient.api,
-    private val sessionManager: SessionManager = SessionManager(application)
-) : AndroidViewModel(application) {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val apiService = AuthRetrofitClient.api
+    private val sessionManager = SessionManager(application)
+
+    // Inicializamos la base de datos local
+    private val database = AppDatabase.getDatabase(application)
+    private val userRepository = UserRepository(
+        database.userDao(),
+        database.userPreferencesDao()
+    )
 
     var email by mutableStateOf("")
     var password by mutableStateOf("")
@@ -36,19 +43,35 @@ class LoginViewModel(
 
             try {
                 val request = LoginRequest(email = email, password = password)
-
                 val response = apiService.loginUser(request)
 
                 if (response.isSuccessful && response.body() != null) {
                     val apiData = response.body()!!
 
                     if (apiData.user != null) {
-                        val usuario = apiData.user
+                        val usuarioApi = apiData.user
+                        val userIdStr = usuarioApi.id.toString()
+
+                        // 1. Guardar sesión
                         sessionManager.saveSession(
-                            userId = usuario.id.toString(),
-                            email = usuario.email,
-                            userName = usuario.username
+                            userId = userIdStr,
+                            email = usuarioApi.email,
+                            userName = usuarioApi.username
                         )
+
+                        val userLocal = User(
+                            userId = userIdStr,
+                            username = usuarioApi.username,
+                            email = usuarioApi.email,
+                            passwordHash = ""
+                        )
+
+                        try {
+                            userRepository.insertUserFromApi(userLocal)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
                         onSuccess()
                     } else {
                         errorMessage = "Error: El servidor no devolvió los datos del usuario."

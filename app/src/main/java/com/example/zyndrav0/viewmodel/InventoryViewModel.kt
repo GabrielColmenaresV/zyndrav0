@@ -12,15 +12,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class InventoryViewModel(
-    application: Application,
-    private val sessionManager: SessionManager = SessionManager(application),
-    private val gachaRepository: GachaRepository = GachaRepository(
-        AppDatabase.getDatabase(application).gachaInventoryDao(),
-        AppDatabase.getDatabase(application).userDao()
-    )
-) : AndroidViewModel(application) {
+class InventoryViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val sessionManager = SessionManager(application)
+    private val database = AppDatabase.getDatabase(application)
+    private val gachaRepository = GachaRepository(
+        database.gachaInventoryDao(),
+        database.userDao()
+    )
 
     private val _inventory = MutableStateFlow<List<GachaInventoryItem>>(emptyList())
     val inventory: StateFlow<List<GachaInventoryItem>> = _inventory
@@ -33,7 +32,6 @@ class InventoryViewModel(
         viewModelScope.launch {
             val userId = sessionManager.userId.first()
             if (userId != null) {
-                // Asumiendo que tu repo devuelve un Flow, usamos collect
                 gachaRepository.getAllItems(userId).collect { items ->
                     _inventory.value = items
                 }

@@ -7,11 +7,9 @@ import com.example.zyndrav0.data.datastore.SessionManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class InicioViewModel(
-    application: Application,
-    private val sessionManager: SessionManager = SessionManager(application)
-) : AndroidViewModel(application) {
+class InicioViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val sessionManager = SessionManager(application)
     val isLoggedIn: Flow<Boolean> = sessionManager.isLoggedIn
 
     fun logout() {

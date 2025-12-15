@@ -1,143 +1,121 @@
 package com.example.zyndrav0.ui.screen
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.BluetoothSearching
+import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-// 👇 ESTA ES LA IMPORTACIÓN QUE FALTABA
-import com.example.zyndrav0.data.repository.BluetoothDeviceUi
 import com.example.zyndrav0.viewmodel.BluetoothViewModel
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BluetoothScreen(
-    onBackClick: () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: BluetoothViewModel = viewModel()
 ) {
-    val devices by viewModel.devices.collectAsState()
-    val isScanning by viewModel.isScanning.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val context = LocalContext.current
-
-    // Permisos necesarios según la versión de Android
-    val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    } else {
-        arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { perms ->
-            val allGranted = perms.values.all { it }
-            if (allGranted) {
-                viewModel.startScan()
-            }
-        }
-    )
+    val pairedDevices by viewModel.pairedDevices.collectAsState()
+    val connectionStatus by viewModel.connectionStatus.collectAsState()
+    val isConnected by viewModel.isConnected.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Escáner Bluetooth") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                },
+                title = { Text("Conexión Bluetooth") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    permissionLauncher.launch(permissionsToRequest)
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                ),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
                 },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                if (isScanning) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Icon(Icons.Default.Refresh, contentDescription = "Escanear")
+                actions = {
+                    IconButton(onClick = { viewModel.refreshPairedDevices() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Recargar", tint = Color.White)
+                    }
                 }
-            }
+            )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mensaje de error si existe
-            errorMessage?.let { msg ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isConnected) Color(0xFFE7F9E7) else MaterialTheme.colorScheme.surfaceVariant
+                ),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = msg,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
+                    Icon(
+                        if (isConnected) Icons.Default.BluetoothConnected else Icons.Default.Bluetooth,
+                        contentDescription = null,
+                        tint = if (isConnected) Color(0xFF2E7D32) else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(48.dp)
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = connectionStatus,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isConnected) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurface
+                    )
+
+                    if (isConnected) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { viewModel.disconnect() },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Desconectar")
+                        }
+                    }
                 }
             }
 
-            // Lista de dispositivos
-            if (devices.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.BluetoothSearching,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = Color.Gray
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("No se encontraron dispositivos", color = Color.Gray)
-                        Text("Presiona el botón para escanear", style = MaterialTheme.typography.bodySmall)
-                    }
+            Text(
+                "Dispositivos Vinculados",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
+            )
+
+            if (pairedDevices.isEmpty()) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("No se encontraron dispositivos vinculados.")
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(devices) { device ->
-                        BluetoothDeviceItem(device = device)
+                    items(pairedDevices) { device ->
+                        DeviceItem(device = device) {
+                            viewModel.connectToDevice(device)
+                        }
                     }
                 }
             }
@@ -145,41 +123,33 @@ fun BluetoothScreen(
     }
 }
 
+@SuppressLint("MissingPermission")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BluetoothDeviceItem(device: BluetoothDeviceUi) {
+fun DeviceItem(device: BluetoothDevice, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Bluetooth,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Icon(Icons.Default.Bluetooth, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = device.name.ifBlank { "Dispositivo Desconocido" },
-                    style = MaterialTheme.typography.titleMedium
+                    text = device.name ?: "Desconocido",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = device.address,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
-                if (device.bondState == BluetoothDevice.BOND_BONDED) {
-                    Text(
-                        text = "Vinculado",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
-                }
             }
         }
     }

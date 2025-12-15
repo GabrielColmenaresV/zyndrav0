@@ -16,18 +16,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class GachaViewModel(
-    application: Application,
-    private val sessionManager: SessionManager = SessionManager(application),
-    private val userRepository: UserRepository = UserRepository(
-        AppDatabase.getDatabase(application).userDao(),
-        AppDatabase.getDatabase(application).userPreferencesDao()
-    ),
-    private val gachaRepository: GachaRepository = GachaRepository(
-        AppDatabase.getDatabase(application).gachaInventoryDao(),
-        AppDatabase.getDatabase(application).userDao()
+class GachaViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val sessionManager = SessionManager(application)
+    private val database = AppDatabase.getDatabase(application)
+
+    private val userRepository = UserRepository(
+        database.userDao(),
+        database.userPreferencesDao()
     )
-) : AndroidViewModel(application) {
+
+    private val gachaRepository = GachaRepository(
+        database.gachaInventoryDao(),
+        database.userDao()
+    )
 
     private val _currency = MutableStateFlow(0)
     val currency: StateFlow<Int> = _currency.asStateFlow()

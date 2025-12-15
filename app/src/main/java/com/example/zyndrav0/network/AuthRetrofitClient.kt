@@ -21,12 +21,11 @@ object AuthRetrofitClient {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Creamos la instancia pública para llamar a la API
     val api: AuthApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson)) // Usamos Gson para JSON
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(AuthApiService::class.java)
     }

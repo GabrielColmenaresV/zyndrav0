@@ -12,15 +12,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ChatHistoryViewModel(
-    application: Application,
-    private val sessionManager: SessionManager = SessionManager(application),
-    private val chatRepository: ChatRepository = ChatRepository(
-        AppDatabase.getDatabase(application).conversationDao(),
-        AppDatabase.getDatabase(application).messageDao()
-    )
-) : AndroidViewModel(application) {
+class ChatHistoryViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Para evitar el crash
+    private val sessionManager = SessionManager(application)
+    private val database = AppDatabase.getDatabase(application)
+    private val chatRepository = ChatRepository(
+        database.conversationDao(),
+        database.messageDao()
+    )
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     val conversations: StateFlow<List<Conversation>> = _conversations

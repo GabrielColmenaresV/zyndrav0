@@ -7,18 +7,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.zyndrav0.data.database.AppDatabase
+import com.example.zyndrav0.data.database.entities.User
 import com.example.zyndrav0.data.datastore.SessionManager
+import com.example.zyndrav0.data.repository.UserRepository
 import com.example.zyndrav0.model.RegisterRequest
-import com.example.zyndrav0.network.AuthApiService
 import com.example.zyndrav0.network.AuthRetrofitClient
 import kotlinx.coroutines.launch
 
-class RegistroViewModel(
-    application: Application,
-    private val apiService: AuthApiService = AuthRetrofitClient.api,
-    private val sessionManager: SessionManager = SessionManager(application)
-) : AndroidViewModel(application) {
+class RegistroViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val apiService = AuthRetrofitClient.api
+    private val sessionManager = SessionManager(application)
+
+    private val database = AppDatabase.getDatabase(application)
+    private val userRepository = UserRepository(
+        database.userDao(),
+        database.userPreferencesDao()
+    )
 
     var username by mutableStateOf("")
     var email by mutableStateOf("")
@@ -51,7 +57,6 @@ class RegistroViewModel(
                     password = password
                 )
 
-
                 val response = apiService.registerUser(request)
 
                 if (response.isSuccessful && response.body() != null) {
@@ -65,6 +70,14 @@ class RegistroViewModel(
                         email = email,
                         userName = userName
                     )
+
+                    val nuevoUsuarioLocal = User(
+                        userId = userId,
+                        username = userName,
+                        email = email,
+                        passwordHash = ""
+                    )
+                    userRepository.insertUserFromApi(nuevoUsuarioLocal)
 
                     onSuccess()
                 } else {

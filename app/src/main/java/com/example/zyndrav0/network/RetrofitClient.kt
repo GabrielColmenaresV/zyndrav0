@@ -15,7 +15,7 @@ object RetrofitClient {
         .setLenient()
         .create()
 
-    // Aumentamos la paciencia a 60 segundos para evitar error de timeout
+    // Aumentamos la paciencia a 60 o 90 segundos para evitar error de timeout
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS) // Tiempo para establecer conexión
         .readTimeout(60, TimeUnit.SECONDS)    // Tiempo esperando que N8N responda
