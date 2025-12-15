@@ -205,7 +205,7 @@ Para conectar con un webhook de n8n:
 - [ ] Tiradas x10 con descuento
 
 ## Créditos
-
+Demis Zuñiga - Tapia - Gabriel Colmenares
 **Proyecto Universitario**
 - Desarrollado con Android Studio
 - Tecnologías: Kotlin, Jetpack Compose, Room, CameraX, Aurora RDS 
@@ -217,7 +217,7 @@ Este es un proyecto académico desarrollado con fines educativos.
 
 ## Contacto
 
-Para dudas o sugerencias sobre el proyecto, consulta la documentación incluida o revisa el código fuente.
+Al Whatsapp.
 
 ---
 
