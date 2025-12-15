@@ -162,10 +162,7 @@ app/src/main/java/com/example/zyndrav0/
 ```
 
 ## Documentación
-
-- **[DOCUMENTACION_ZYNDRA.md](DOCUMENTACION_ZYNDRA.md)** - Documentación técnica completa
-- **[GUIA_RAPIDA.md](GUIA_RAPIDA.md)** - Guía de inicio rápido
-- **[CHECKLIST_VERIFICACION.md](CHECKLIST_VERIFICACION.md)** - Verificación de funcionalidades
+# LINK DE TRELLO : https://trello.com/b/8G13cWJL/equipo-something-something-appmovil
 
 
 ## Características Técnicas
