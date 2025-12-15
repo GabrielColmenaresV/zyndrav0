@@ -119,7 +119,7 @@ Zyndra es una aplicación móvil de agente personal para Android que combina fun
 4. ¡Disfrutar!
 
 ## APK
-- El APK esta en el drive de los integrantes y el archivo jks tambien
+- El APK FIRMADO lo puede encontrar en el apartado de la derecha donde dice 'RELEASE' junto al JKS
 
 ## Guía de Uso Rápido
 
