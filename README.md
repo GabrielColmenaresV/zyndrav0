@@ -88,6 +88,10 @@ Zyndra es una aplicación móvil de agente personal para Android que combina fun
   - Bluetooth (opcional)
   - Internet (requerido)
 
+## EndPoints Usados
+- Zyndra utiliza tecnologia de AWS Aurora RDS para api *INTERNA* donde se almacenan los Usuarios creados
+- Zyndra utiliza para la api *EXTERNA* N8N para las respuestas del agente 
+
 ## Instalación
 
 ### Para Desarrollo
@@ -113,6 +117,9 @@ Zyndra es una aplicación móvil de agente personal para Android que combina fun
 2. Instalar en dispositivo Android
 3. Conceder permisos solicitados
 4. ¡Disfrutar!
+
+## APK
+- El APK esta en el drive de los integrantes y el archivo jks tambien
 
 ## Guía de Uso Rápido
 
@@ -160,18 +167,6 @@ app/src/main/java/com/example/zyndrav0/
 - **[GUIA_RAPIDA.md](GUIA_RAPIDA.md)** - Guía de inicio rápido
 - **[CHECKLIST_VERIFICACION.md](CHECKLIST_VERIFICACION.md)** - Verificación de funcionalidades
 
-## Configuración Adicional
-
-### API de n8n (Opcional)
-
-Para conectar con un webhook de n8n:
-
-1. Abre `app/src/main/java/com/example/zyndrav0/network/RetrofitClient.kt`
-2. Modifica la `BASE_URL`:
-   ```kotlin
-   private const val BASE_URL = "https://tu-webhook-n8n.com/"
-   ```
-3. Recompila la app
 
 ## Características Técnicas
 
